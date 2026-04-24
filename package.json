@@ -1,0 +1,15 @@
+{
+  "name": "medping",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": ["server", "client"],
+  "scripts": {
+    "dev:server": "npm run dev --workspace=server",
+    "dev:client": "npm run dev --workspace=client",
+    "test": "node_modules/.bin/jest --runInBand --testPathPattern=server/tests",
+    "test:watch": "node_modules/.bin/jest --watch --runInBand --testPathPattern=server/tests"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
