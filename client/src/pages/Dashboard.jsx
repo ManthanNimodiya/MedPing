@@ -1,91 +1,135 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
-import { api } from '../api/client.js';
-import PatientsTab from '../components/PatientsTab.jsx';
+import { LogoFull } from '../components/Logo.jsx';
+import PatientsTab  from '../components/PatientsTab.jsx';
 import AdherenceTab from '../components/AdherenceTab.jsx';
 
-const TABS = ['Patients', 'Adherence'];
+const NAV = [
+  { id: 'patients',  icon: '👥', label: 'Patients' },
+  { id: 'adherence', icon: '📊', label: 'Adherence' },
+];
 
 export default function Dashboard() {
   const { doctor, logout, loading } = useAuth();
-  const navigate  = useNavigate();
-  const [tab, setTab] = useState('Patients');
+  const navigate = useNavigate();
+  const [tab, setTab] = useState('patients');
 
   useEffect(() => {
     if (!loading && !doctor) navigate('/');
   }, [doctor, loading]);
 
-  if (loading || !doctor) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading…</div>
-      </div>
-    );
-  }
+  if (loading || !doctor) return <Loader />;
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
 
-      {/* ── Top bar ───────────────────────────────────────────────────── */}
-      <header style={{
-        height: 60, padding: '0 28px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        borderBottom: '1px solid var(--border)',
-        background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)',
-        position: 'sticky', top: 0, zIndex: 50,
+      {/* ── Sidebar ───────────────────────────────────────── */}
+      <aside style={{
+        width: 240, flexShrink: 0,
+        background: 'var(--dark)',
+        display: 'flex', flexDirection: 'column',
+        padding: '0 0 24px',
+        position: 'sticky', top: 0, height: '100vh',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 20 }}>💊</span>
-          <span style={{ fontWeight: 700, letterSpacing: '-0.3px' }}>MedPing</span>
-          <span style={{
-            marginLeft: 4, background: 'var(--accent-soft)', color: 'var(--accent)',
-            borderRadius: 999, padding: '2px 10px', fontSize: 12, fontWeight: 500,
-          }}>
-            {doctor.plan}
-          </span>
+        {/* Logo area */}
+        <div style={{
+          padding: '24px 20px 20px',
+          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          marginBottom: 12,
+        }}>
+          <LogoFull size={24} dark />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontWeight: 600, fontSize: 14 }}>{doctor.name}</div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{doctor.clinic_name}</div>
+        {/* Nav links */}
+        <nav style={{ flex: 1, padding: '8px 10px' }}>
+          {NAV.map(n => (
+            <button key={n.id} onClick={() => setTab(n.id)} style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+              padding: '11px 12px', borderRadius: 10, border: 'none',
+              background: tab === n.id ? 'rgba(217,119,87,0.18)' : 'transparent',
+              color: tab === n.id ? 'var(--accent)' : 'var(--mid-gray)',
+              fontFamily: "'Poppins',sans-serif",
+              fontWeight: tab === n.id ? 600 : 400,
+              fontSize: 14, cursor: 'pointer',
+              transition: 'background .15s, color .15s',
+              marginBottom: 2,
+              textAlign: 'left',
+            }}
+              onMouseEnter={e => { if (tab !== n.id) e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+              onMouseLeave={e => { if (tab !== n.id) e.currentTarget.style.background = 'transparent'; }}
+            >
+              <span style={{ fontSize: 16 }}>{n.icon}</span>
+              {n.label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Doctor profile footer */}
+        <div style={{
+          margin: '0 10px',
+          padding: '14px 12px',
+          borderRadius: 10,
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(255,255,255,0.07)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <div style={{
+              width: 34, height: 34, borderRadius: '50%',
+              background: 'var(--accent)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: "'Poppins',sans-serif", fontWeight: 700, fontSize: 13, color: '#fff',
+            }}>
+              {doctor.name.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <div style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 600, fontSize: 13, color: '#fff', lineHeight: 1.2 }}>
+                {doctor.name}
+              </div>
+              <div style={{ fontFamily: "'Lora',serif", fontSize: 11, color: 'var(--mid-gray)', marginTop: 2 }}>
+                {doctor.clinic_name}
+              </div>
+            </div>
           </div>
           <button onClick={() => { logout(); navigate('/'); }} style={{
-            background: 'none', border: '1px solid var(--border)',
-            borderRadius: 8, padding: '6px 14px',
-            fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer',
-          }}>
+            width: '100%', background: 'rgba(255,255,255,0.08)',
+            border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8,
+            padding: '7px', color: 'var(--mid-gray)',
+            fontFamily: "'Poppins',sans-serif", fontSize: 12, cursor: 'pointer',
+            transition: 'background .15s, color .15s',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.14)'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'var(--mid-gray)'; }}
+          >
             Sign out
           </button>
         </div>
-      </header>
+      </aside>
 
-      {/* ── Tab bar ───────────────────────────────────────────────────── */}
-      <div style={{
-        padding: '0 28px',
-        borderBottom: '1px solid var(--border)',
-        display: 'flex', gap: 4,
-      }}>
-        {TABS.map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{
-            background: 'none', border: 'none',
-            padding: '14px 16px',
-            fontSize: 14, fontWeight: tab === t ? 600 : 400,
-            color: tab === t ? 'var(--accent)' : 'var(--text-muted)',
-            borderBottom: tab === t ? '2px solid var(--accent)' : '2px solid transparent',
-            cursor: 'pointer', transition: 'color .15s',
-          }}>
-            {t}
-          </button>
-        ))}
-      </div>
-
-      {/* ── Content ───────────────────────────────────────────────────── */}
-      <main style={{ flex: 1, padding: '28px', maxWidth: 1100, width: '100%', margin: '0 auto' }}>
-        {tab === 'Patients'   && <PatientsTab />}
-        {tab === 'Adherence'  && <AdherenceTab />}
+      {/* ── Main content ──────────────────────────────────── */}
+      <main style={{ flex: 1, padding: '36px 40px', overflowY: 'auto', minWidth: 0 }}>
+        {tab === 'patients'  && <PatientsTab />}
+        {tab === 'adherence' && <AdherenceTab />}
       </main>
+    </div>
+  );
+}
+
+function Loader() {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      height: '100vh', flexDirection: 'column', gap: 16,
+    }}>
+      <div style={{
+        width: 40, height: 40,
+        border: '3px solid var(--light-gray)',
+        borderTop: '3px solid var(--accent)',
+        borderRadius: '50%',
+        animation: 'spin 0.8s linear infinite',
+      }} />
+      <p style={{ fontFamily: "'Lora',serif", color: 'var(--text-muted)', fontSize: 14 }}>Loading…</p>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
